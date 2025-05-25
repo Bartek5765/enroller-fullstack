@@ -14,27 +14,16 @@ export default function MeetingsPage({username}) {
         });
         if (response.ok) {
             const newMeeting = await response.json();
-            const nextMeetings = [...meetings, meeting];
+            const nextMeetings = [...meetings, newMeeting];
             setMeetings(nextMeetings);
             setAddingNewMeeting(false);
         }
     }
 
-    useEffect(() => {
-        const fetchMeetings = async () => {
-            const response = await fetch(`/api/meetings`);
-            if (response.ok) {
-                const meetings = await response.json();
-                setMeetings(meetings);
-            }
-        };
-        fetchMeetings();
-    }, []);
 
     async function handleDeleteMeeting(meeting) {
         const response = await fetch(`/api/meetings/${meeting.id}`, {
             method: 'DELETE',
-
         });
         if (response.ok) {
             const nextMeetings = meetings.filter(m => m !== meeting);
@@ -43,7 +32,7 @@ export default function MeetingsPage({username}) {
     }
 
     async function handleSignToMeeting(meeting) {
-        const response = await fetch(`/api/meetings/${meeting.id}/participants`, {
+        const response = await fetch(`api/meetings/${meeting.id}/participants`, {
             method: 'POST',
             body: username,
             headers: {'Content-Type': 'application/json'}
@@ -51,6 +40,27 @@ export default function MeetingsPage({username}) {
         if (response.ok) {
             getMeetings();
         }
+    }
+
+    async function handleUnsignForMeeting(meeting) {
+        const response = await fetch(`api/meetings/${meeting.id}/participants/${username}`, {
+            method: 'DELETE',
+        })
+        if (response.ok) {
+            getMeetings();
+        }
+    }
+
+    async function editMeeting(meeting) {
+        let newMeeting = {};
+        const response = await fetch(`api/meetings/${meeting.id}`, newMeeting, {
+            method: 'PUT',
+            body: JSON.stringify(newMeeting),
+            headers: { 'Content-Type': 'application/json' }
+        })
+        if (response.ok) {
+        }
+
     }
 
     useEffect(() => {
@@ -61,14 +71,12 @@ export default function MeetingsPage({username}) {
     }, []);
 
     async function getMeetings() {
-        const response = await fetch(`/api/meetings`, {
-            if (response.ok) {
+        const response = await fetch(`/api/meetings`);
+        if (response.ok) {
             const meetings = await response.json();
             setMeetings(meetings);
         }
     }
-
-
 
     return (
         <div>
@@ -80,7 +88,8 @@ export default function MeetingsPage({username}) {
             }
             {meetings.length > 0 &&
                 <MeetingsList meetings={meetings} username={username}
-                              onDelete={handleDeleteMeeting}/>}
+                              onDelete={handleDeleteMeeting} signToMeeting={handleSignToMeeting}
+                              unsignFromMeeting={handleUnsignForMeeting}/>}
         </div>
     )
 }
